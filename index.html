@@ -69,7 +69,7 @@ footer{max-width:1100px;margin:auto;padding:16px 16px 28px;text-align:center;col
 <p style="margin:0;font-size:12px;color:var(--mu)">لعمل صفحة فيها ٤ مستمسكات وصفحة ثانية فيها ٦ مستمسكات أخرى: أضف مستمسكات الصفحة الأولى، ثم اضغط «صفحة جديدة»، ثم أضف مستمسكات الصفحة الثانية. استعمل ↑ ↓ لإعادة الترتيب.</p>
 </section>
 <section><h2>٢. سكنر المستندات والملازم</h2>
-<label id="srcw">مصدر الصفحات (للكمبيوتر)<select id="ssrc"><option value="scan">سكنر / طابعة (استيراد ملفات PDF أو صور)</option><option value="cam">كاميرا الكمبيوتر / ويب كام</option></select></label>
+<label id="srcw">مصدر الصفحات (للكمبيوتر)<select id="ssrc"><option value="scan">سكنر / طابعة (سحب مباشر)</option><option value="cam">كاميرا الكمبيوتر / ويب كام</option></select></label>
 <div class="acts"><button id="scc" type="button">📑 بدء السكنر</button><button id="scg" type="button" class="sec">🖼 صفحات من ملفات</button><button id="scd" type="button" class="sec">🗑 حذف كل الصفحات</button></div>
 <div class="r"><label>تنظيف الصفحات<select id="sfl"><option value="magic">مستند نظيف (سحري)</option><option value="color">ملوّن</option><option value="gray">رمادي</option><option value="bw">أبيض/أسود</option><option value="auto">تلقائي</option><option value="orig">الأصلي</option></select></label>
 <label>عدد الصفحات في الورقة<select id="spp"><option>1</option><option>2</option><option>4</option><option>6</option><option>8</option></select></label></div>
@@ -103,10 +103,163 @@ footer{max-width:1100px;margin:auto;padding:16px 16px 28px;text-align:center;col
 </main>
 <footer>تم تصميم النظام من قبل / حسين جعفر العنكوشي</footer>
 <div id="pa"></div>
+<script type="text/plain" id="ps1src"># Scanner bridge for the document printing page (Windows WIA). Keep this window open while scanning.
+param([int]$Port=8765,[string]$Origin='__ORIGIN__')
+$ErrorActionPreference='Stop'
+Add-Type -AssemblyName System.Drawing
+$dm=New-Object -ComObject WIA.DeviceManager
+
+function Test-Origin($o){
+  if(-not $o){return $false}
+  if($o -eq $Origin){return $true}
+  return ($o -match '^http://(localhost|127\.0\.0\.1)(:\d+)?$')
+}
+function Write-Resp($ctx,[int]$code,$bytes,[string]$type){
+  $r=$ctx.Response;$r.StatusCode=$code;$r.ContentType=$type
+  $o=$ctx.Request.Headers['Origin']
+  if($o){$r.Headers.Add('Access-Control-Allow-Origin',$o);$r.Headers.Add('Vary','Origin')}
+  $r.Headers.Add('Access-Control-Allow-Private-Network','true')
+  $r.Headers.Add('Access-Control-Allow-Headers','*')
+  $r.Headers.Add('Access-Control-Allow-Methods','GET, OPTIONS')
+  if($bytes -and $bytes.Length -gt 0){$r.ContentLength64=$bytes.Length;$r.OutputStream.Write($bytes,0,$bytes.Length)}
+  $r.OutputStream.Close()
+}
+function Get-PropObj($obj,[int]$id){foreach($p in $obj.Properties){if($p.PropertyID -eq $id){return $p}};return $null}
+function Set-Prop($obj,[int]$id,$val){
+  $p=Get-PropObj $obj $id
+  if($p){try{$p.Value=$val;return $true}catch{return $false}}
+  return $false
+}
+function Set-Scaled($obj,[int]$id,[int]$pct){
+  $p=Get-PropObj $obj $id
+  if($p){
+    $mx=[double]$p.SubTypeMax;$mn=[double]$p.SubTypeMin
+    if($mx -gt $mn){
+      $mid=($mx+$mn)/2;$half=($mx-$mn)/2
+      try{$p.Value=[int]($mid+$half*$pct/100)}catch{}
+    }
+  }
+}
+function Get-Scanners{
+  $list=@()
+  foreach($d in $dm.DeviceInfos){
+    if($d.Type -eq 1){
+      $nm=[string]$d.DeviceID
+      try{$nm=[string]$d.Properties.Item('Name').Value}catch{}
+      $list+=[pscustomobject]@{id=[string]$d.DeviceID;name=$nm}
+    }
+  }
+  return ,$list
+}
+function Invoke-Scan($q){
+  $dev=$null
+  foreach($i in $dm.DeviceInfos){if($i.DeviceID -eq $q['dev']){$dev=$i.Connect()}}
+  if(-not $dev){throw 'Scanner not found'}
+  $src=$q['src'];$dpi=[int]$q['dpi'];if($dpi -lt 50){$dpi=75}
+  $sel=2;if($src -eq 'adf'){$sel=1}elseif($src -eq 'duplex'){$sel=5}
+  [void](Set-Prop $dev 3088 $sel)
+  if($sel -ne 2){
+    $st=Get-PropObj $dev 3087
+    if($st -and (([int]$st.Value -band 1) -eq 0)){return $null}
+  }
+  $item=$dev.Items.Item(1)
+  $mode=$q['mode'];$intent=1;$dtype=3
+  if($mode -eq 'gray'){$intent=2;$dtype=2}elseif($mode -eq 'bw'){$intent=4;$dtype=0}
+  [void](Set-Prop $item 6146 $intent)
+  [void](Set-Prop $item 4103 $dtype)
+  [void](Set-Prop $item 6147 $dpi);[void](Set-Prop $item 6148 $dpi)
+  $sizes=@{a4=@(210,297);a5=@(148,210);b5=@(176,250);letter=@(215.9,279.4);legal=@(215.9,355.6)}
+  $px=Get-PropObj $item 6151;$py=Get-PropObj $item 6152
+  $wp=0;$hp=0
+  if($sizes.ContainsKey($q['size'])){
+    $wp=[int]($sizes[$q['size']][0]/25.4*$dpi);$hp=[int]($sizes[$q['size']][1]/25.4*$dpi)
+  }
+  if($px){if($wp -le 0 -or ($px.SubTypeMax -gt 0 -and $wp -gt $px.SubTypeMax)){$wp=[int]$px.SubTypeMax}}
+  if($py){if($hp -le 0 -or ($py.SubTypeMax -gt 0 -and $hp -gt $py.SubTypeMax)){$hp=[int]$py.SubTypeMax}}
+  if($wp -gt 0 -and $hp -gt 0){
+    [void](Set-Prop $item 6149 0);[void](Set-Prop $item 6150 0)
+    [void](Set-Prop $item 6151 $wp);[void](Set-Prop $item 6152 $hp)
+  }
+  $bri=[int]$q['bri'];$con=[int]$q['con']
+  if($bri -ne 0){Set-Scaled $item 6154 $bri}
+  if($con -ne 0){Set-Scaled $item 6155 $con}
+  try{
+    $img=$item.Transfer('{B96B3CAF-0728-11D3-9D7B-0000F81EF32E}')
+  }catch{
+    $hr=$_.Exception.HResult
+    if($hr -eq -2145386493 -or $_.Exception.InnerException.HResult -eq -2145386493){return $null}
+    throw
+  }
+  $tmp=Join-Path $env:TEMP ('sc_'+[guid]::NewGuid().ToString('N')+'.'+$img.FileExtension)
+  $img.SaveFile($tmp)
+  $bmp=[System.Drawing.Image]::FromFile($tmp)
+  $ms=New-Object System.IO.MemoryStream
+  $type='image/jpeg'
+  if($mode -eq 'bw'){
+    $bmp.Save($ms,[System.Drawing.Imaging.ImageFormat]::Png);$type='image/png'
+  }else{
+    $enc=[System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders()|Where-Object{$_.MimeType -eq 'image/jpeg'}
+    $ep=New-Object System.Drawing.Imaging.EncoderParameters(1)
+    $ep.Param[0]=New-Object System.Drawing.Imaging.EncoderParameter([System.Drawing.Imaging.Encoder]::Quality,[long]92)
+    $bmp.Save($ms,$enc,$ep)
+  }
+  $bmp.Dispose();Remove-Item $tmp -Force -ErrorAction SilentlyContinue
+  return @{b=$ms.ToArray();t=$type}
+}
+
+$l=New-Object System.Net.HttpListener
+$l.Prefixes.Add("http://127.0.0.1:$Port/")
+$l.Start()
+Write-Host "Scanner bridge is running on port $Port. Allowed page: $Origin"
+Write-Host "Keep this window open. Close it to stop."
+while($l.IsListening){
+  $ctx=$l.GetContext()
+  try{
+    $o=$ctx.Request.Headers['Origin']
+    if(-not (Test-Origin $o)){Write-Resp $ctx 403 ([Text.Encoding]::UTF8.GetBytes('forbidden')) 'text/plain';continue}
+    if($ctx.Request.HttpMethod -eq 'OPTIONS'){Write-Resp $ctx 204 $null 'text/plain';continue}
+    $path=$ctx.Request.Url.AbsolutePath
+    $q=@{}
+    foreach($k in $ctx.Request.QueryString.AllKeys){if($k){$q[$k]=$ctx.Request.QueryString[$k]}}
+    if($path -eq '/ping'){
+      Write-Resp $ctx 200 ([Text.Encoding]::UTF8.GetBytes('{"ok":true,"v":1}')) 'application/json'
+    }elseif($path -eq '/devices'){
+      $d=Get-Scanners
+      $json='[]';if($d.Count -gt 0){$json=ConvertTo-Json -InputObject @($d) -Compress}
+      Write-Resp $ctx 200 ([Text.Encoding]::UTF8.GetBytes($json)) 'application/json; charset=utf-8'
+    }elseif($path -eq '/scan'){
+      Write-Host ("Scanning: dpi={0} mode={1} src={2} size={3}" -f $q['dpi'],$q['mode'],$q['src'],$q['size'])
+      $res=Invoke-Scan $q
+      if($null -eq $res){Write-Resp $ctx 204 $null 'text/plain'}else{Write-Resp $ctx 200 $res.b $res.t}
+    }else{
+      Write-Resp $ctx 404 ([Text.Encoding]::UTF8.GetBytes('not found')) 'text/plain'
+    }
+  }catch{
+    Write-Host ("Error: "+$_.Exception.Message)
+    try{Write-Resp $ctx 500 ([Text.Encoding]::UTF8.GetBytes([string]$_.Exception.Message)) 'text/plain; charset=utf-8'}catch{}
+  }
+}
+</script>
 <input type="file" accept="image/*" capture="environment" id="camIn" hidden><input type="file" accept="image/*" multiple id="galIn" hidden><input type="file" accept="image/*,application/pdf,.pdf" multiple id="scIn" hidden><div id="msg"></div>
 <div id="cm" hidden><p>قرّب المستمسك من الإطار المتقطع، وعندما تظهر حدود خضراء على حوافه اضغط التقاط (أو فعّل التصوير التلقائي)</p><div id="cw"><video id="vv" autoplay playsinline muted></video><div id="gd"></div><svg id="sv" viewBox="0 0 100 100" preserveAspectRatio="none"><polygon id="pg" points=""/></svg></div>
 <label style="color:#ddd;margin:0"><input type="checkbox" id="ac"> تصوير تلقائي عند ثبات الحواف</label><select id="camsel" hidden style="width:auto;max-width:90%"></select>
 <div class="eb" style="width:100%;justify-content:center"><button class="sec" id="cx" type="button" style="color:#fff">إلغاء</button><button id="cs" type="button">📸 التقاط</button><button class="sec" id="cr" type="button" style="color:#fff">⟲ عمودي/أفقي</button><button class="sec" id="cn" type="button" style="color:#fff">كاميرا الجهاز</button></div></div>
+<div id="sm" class="md" hidden><div class="eh"><b>🖨 سحب من السكنر / الطابعة</b><button class="sec" id="smx" type="button">إغلاق</button></div>
+<div id="smst" style="padding:8px 10px;border-radius:8px;background:var(--card);border:1px solid var(--bd)"></div>
+<div id="smhelp" hidden style="padding:10px;border-radius:8px;background:var(--card);border:1px solid var(--bd);font-size:13px;line-height:1.8">
+<b>لتشغيل السحب المباشر من السكنر (مرة واحدة لكل جلسة):</b><br>١. اضغط «تنزيل برنامج الربط» وضع الملفين في مجلد واحد.<br>٢. شغّل الملف <b>start-scanner.bat</b> (دبل كلك) واترك نافذته مفتوحة. إن ظهرت رسالة حماية من ويندوز اختر «معلومات إضافية ← تشغيل على أي حال».<br>٣. ارجع هنا واضغط «إعادة الفحص». إن طلب المتصفح السماح بالوصول للشبكة المحلية اضغط «سماح».<br>يعمل مع أي طابعة/سكنر يظهر في «Windows Scan» (يدعم WIA)، ومنها طابعات Brother متعددة الوظائف.
+<div class="eb" style="justify-content:flex-start;margin-top:8px"><button id="smdl" type="button">⬇ تنزيل برنامج الربط</button><button class="sec" id="smre" type="button">🔄 إعادة الفحص</button><button class="sec" id="smfi" type="button">📂 استيراد ملفات بدلاً من ذلك</button></div></div>
+<div id="smbody" hidden>
+<label>الطابعة / السكنر<div class="eb" style="justify-content:flex-start;flex-wrap:nowrap"><select id="smd" style="flex:1"></select><button class="sec" id="smrf" type="button">🔄</button></div></label>
+<div class="r"><label>مصدر الورق<select id="sms"><option value="flat">السطح الزجاجي (ورقة ورقة)</option><option value="adf">التغذية التلقائية ADF</option><option value="duplex">ADF وجهين (حسب دعم الجهاز)</option></select></label>
+<label>نمط اللون<select id="smm"><option value="color">ملوّن</option><option value="gray">رمادي</option><option value="bw">أبيض وأسود</option></select></label></div>
+<div class="r"><label>الدقة (DPI)<select id="smr"><option>100</option><option>150</option><option selected>200</option><option>300</option><option>400</option><option>600</option></select></label>
+<label>حجم الورقة<select id="smz"><option value="a4">A4</option><option value="a5">A5</option><option value="b5">B5</option><option value="letter">Letter</option><option value="legal">Legal</option><option value="full">كامل السطح (مستمسكات وصور)</option></select></label></div>
+<label>السطوع <span id="smbv" style="color:var(--ac);font-weight:700">0</span><input type="range" id="smb" min="-100" max="100" value="0"></label>
+<label>التباين <span id="smcv" style="color:var(--ac);font-weight:700">0</span><input type="range" id="smc" min="-100" max="100" value="0"></label>
+<p style="margin:0;font-size:12px;color:var(--mu)">للمستندات 150–200 DPI، للمستمسكات والصور 300–600. بعد السحب تُضاف الصفحة لقائمة السكنر ويُطبَّق عليها «تنظيف الصفحات» المختار. للسطح الزجاجي: بدّل الورقة واضغط سحب مرة أخرى.</p>
+<div class="eb"><button class="sec" id="smpv" type="button">🔍 معاينة سريعة</button><button id="smgo" type="button">📥 سحب وإضافة للقائمة</button></div>
+<img id="smp" hidden alt="" style="max-width:100%;max-height:40vh;align-self:center;border:1px solid var(--bd);background:#fff"></div></div>
 <div id="pe" class="md" hidden><div class="eh"><b>🎨 تحسين الألوان</b><div><button class="sec" id="pex" type="button">إلغاء</button> <button id="pea" type="button">تطبيق ✓</button></div></div><canvas id="pec"></canvas>
 <div class="eb" style="justify-content:flex-start"><button class="sec" id="pau" type="button">✨ تحسين تلقائي</button><button class="sec" id="per" type="button">↺ تصفير كل التعديلات</button></div><div id="pes"></div></div>
 <div id="pb" class="md" hidden><div class="eh"><b>🖼 لون الخلفية (ذكاء اصطناعي)</b><button id="pbx" class="sec" type="button">إغلاق</button></div><canvas id="pbc"></canvas><p id="bst" style="margin:0;color:var(--mu);font-size:13px"></p><label>نعومة الحافة<input type="range" id="bfe" min="0" max="4" value="1"></label><label>حافة الشخص (سالب يضيّق، موجب يوسّع)<input type="range" id="bsh" min="-3" max="3" value="0"></label>
@@ -367,9 +520,9 @@ async function addScanFiles(fs,flat){let i=0;const FQ=()=>[[0,0],[1,0],[1,1],[0,
   const land=b.width>b.height,w=land?297:210,h=land?210:297;let q=null;if(flat)q=FQ();else{try{q=autoQuad(b,w/h)}catch(_){}if(!q)q=[[.03,.03],[.97,.03],[.97,.97],[.03,.97]]}addScan(b,q,w,h)}catch(_){msg('تعذّر فتح الملف '+i+' (ملفات PDF تحتاج إنترنت أول مرة)')}}
  renderItems();refresh();msg(`تمت الإضافة — مجموع صفحات السكنر ${scanCount()}`)}
 const pickScan=flat=>{tg={scan:1,flat};$('scIn').value='';$('scIn').click()};
-$('scc').onclick=()=>{if(isMobile||$('ssrc').value=='cam')openCam(-1,0,true);else pickScan(true)};$('scg').onclick=()=>pickScan(false);$('scIn').onchange=e=>onFiles(e);
-function updSrc(){const cam=isMobile||$('ssrc').value=='cam';$('scc').textContent=isMobile?'📑 تصوير بكاميرا الهاتف':cam?'📑 تصوير بكاميرا الكمبيوتر':'📑 استيراد من السكنر';
- $('scn').textContent=isMobile?'صوّر الصفحات واحدة تلو الأخرى بكاميرا الهاتف (تبقى مفتوحة وتكتشف حواف الورقة)، أو أضف صوراً من المعرض، ثم رتّبها واطبعها أو احفظها PDF. لملزمة طويلة اجعل الدقة 150–200.':cam?'صوّر الصفحات بكاميرا الكمبيوتر (يمكنك اختيار الكاميرا من داخل شاشة التصوير إن وُجد أكثر من واحدة).':'امسح الصفحات ببرنامج السكنر عندك (Windows Scan أو برنامج الطابعة مثل Brother iPrint&Scan) واحفظها PDF أو صور، ثم اضغط «استيراد من السكنر» واختر الملفات كلها. المتصفح لا يستطيع التحكم بالسكنر مباشرة.'}
+$('scc').onclick=()=>{if(isMobile||$('ssrc').value=='cam')openCam(-1,0,true);else openSM()};$('scg').onclick=()=>pickScan(false);$('scIn').onchange=e=>onFiles(e);
+function updSrc(){const cam=isMobile||$('ssrc').value=='cam';$('scc').textContent=isMobile?'📑 تصوير بكاميرا الهاتف':cam?'📑 تصوير بكاميرا الكمبيوتر':'📑 سحب من السكنر / الطابعة';
+ $('scn').textContent=isMobile?'صوّر الصفحات واحدة تلو الأخرى بكاميرا الهاتف (تبقى مفتوحة وتكتشف حواف الورقة)، أو أضف صوراً من المعرض، ثم رتّبها واطبعها أو احفظها PDF. لملزمة طويلة اجعل الدقة 150–200.':cam?'صوّر الصفحات بكاميرا الكمبيوتر (يمكنك اختيار الكاميرا من داخل شاشة التصوير إن وُجد أكثر من واحدة).':'اضغط «سحب من السكنر / الطابعة» لاختيار الجهاز وضبط الدقة والألوان وحجم الورقة ثم سحب الصفحات مباشرة إلى القائمة.'}
 if(isMobile)$('srcw').hidden=true;else{try{$('ssrc').value=localStorage.ssrc||'scan'}catch(_){}}
 $('ssrc').onchange=()=>{try{localStorage.ssrc=$('ssrc').value}catch(_){}updSrc()};updSrc();
 $('scd').onclick=()=>{if(!scanCount()||!confirm('حذف كل صفحات السكنر؟'))return;for(let i=items.length-1;i>=0;i--)if(items[i].kind=='scan')items.splice(i,1);renderItems();refresh()};
@@ -501,6 +654,38 @@ $('sw').innerHTML=BGC.map(([c,t])=>`<button type="button" data-c="${c}" style="b
 $('sw').onclick=e=>{const c=e.target.dataset.c;if(c)applyBg(PB.k,c)};$('bcu').onchange=e=>applyBg(PB.k,e.target.value);
 $('bre').onclick=()=>{const it=items[PB.k];it.imgs[0]=it.orig||it.imgs[0];it.bg=null;drawPrev($('pbc'),it);renderItems();refresh()};
 $('pbx').onclick=()=>{$('pb').hidden=true;PB=null;renderItems()};
+const BR='http://127.0.0.1:8765',SMI=['smd','sms','smm','smr','smz','smb','smc'];let SM={busy:0,n:0};
+const smSt=(t,bad)=>{const e=$('smst');e.textContent=t;e.style.color=bad?'#e5484d':'inherit'};
+const smTo=ms=>AbortSignal.timeout?AbortSignal.timeout(ms):undefined;
+function smSave(){try{const o={};SMI.forEach(i=>o[i]=$(i).value);localStorage.smset=JSON.stringify(o)}catch(_){}}
+function smLoad(){try{const o=JSON.parse(localStorage.smset||'{}');SMI.forEach(i=>{if(o[i]!=null&&i!='smd')$(i).value=o[i]});$('smbv').textContent=$('smb').value;$('smcv').textContent=$('smc').value}catch(_){}}
+async function smCheck(){smSt('جارٍ البحث عن برنامج الربط…');$('smhelp').hidden=true;$('smbody').hidden=true;
+ try{const r=await fetch(BR+'/ping',{signal:smTo(2500)});if(!r.ok)throw 0}catch(_){smSt('برنامج الربط غير مشغّل على هذا الكمبيوتر.',1);$('smhelp').hidden=false;return}
+ await smDevs()}
+async function smDevs(){smSt('جارٍ البحث عن الأجهزة…');
+ try{const r=await fetch(BR+'/devices',{signal:smTo(30000)}),L=await r.json(),sel=$('smd'),old=sel.value;sel.innerHTML='';L.forEach(d=>sel.add(new Option(d.name,d.id)));if(old)sel.value=old;
+  $('smbody').hidden=!L.length;if(!L.length){smSt('لم يُعثر على أي سكنر. تأكد أن الطابعة شغّالة ومتصلة وتظهر في Windows Scan، ثم اضغط 🔄.',1);$('smhelp').hidden=true;$('smbody').hidden=false;$('smgo').disabled=$('smpv').disabled=true;return}
+  $('smgo').disabled=$('smpv').disabled=false;smSt('متصل ✓ — اختر الجهاز والإعدادات ثم اضغط سحب. صفحات السكنر الحالية: '+scanCount())}catch(e){smSt('تعذّر قراءة الأجهزة: '+e.message,1)}}
+function openSM(){$('sm').hidden=false;smLoad();smCheck()}
+async function smScan(prev){const q=new URLSearchParams({dev:$('smd').value,dpi:prev?75:$('smr').value,mode:$('smm').value,src:$('sms').value,size:$('smz').value,bri:$('smb').value,con:$('smc').value});
+ const r=await fetch(BR+'/scan?'+q,{signal:smTo(240000)});if(r.status==204)return null;if(!r.ok)throw new Error(await r.text()||('خطأ '+r.status));return await r.blob()}
+async function smAdd(bl){const b0=await createImageBitmap(bl),m=Math.min(1,3000/Math.max(b0.width,b0.height));let b=b0;if(m<1){const c=cv(b0.width*m,b0.height*m);c.getContext('2d').drawImage(b0,0,0,c.width,c.height);b=await createImageBitmap(c);if(b0.close)b0.close()}
+ const r=b.width/b.height;addScan(b,[[0,0],[1,0],[1,1],[0,1]],r>=1?210*r:210,r>=1?210:210/r)}
+async function smPull(){if(SM.busy)return;SM.busy=1;smSave();$('smgo').disabled=$('smpv').disabled=true;let n=0;
+ try{const adf=$('sms').value!='flat';do{smSt(`جارٍ سحب الصفحة ${n+1}… (انتظر حتى ينتهي السكنر)`);const bl=await smScan(false);if(!bl){if(!n)smSt(adf?'لا توجد أوراق في وحدة التغذية.':'لم يرجع السكنر صورة.',1);break}await smAdd(bl);n++}while(adf);
+  if(n){smSt(`✓ تمت إضافة ${n} صفحة — المجموع ${scanCount()}. ${adf?'':'بدّل الورقة واضغط سحب للصفحة التالية.'}`)}}
+ catch(e){smSt('تعذّر السحب: '+e.message,1)}
+ SM.busy=0;$('smgo').disabled=$('smpv').disabled=false;if(n){renderItems();refresh()}}
+async function smPrev(){if(SM.busy)return;SM.busy=1;$('smgo').disabled=$('smpv').disabled=true;smSt('جارٍ المعاينة…');
+ try{const bl=await smScan(true);if(!bl)smSt('لا توجد ورقة.',1);else{const im=$('smp');if(im.src)URL.revokeObjectURL(im.src);im.src=URL.createObjectURL(bl);im.hidden=false;smSt('معاينة بدقة منخفضة. اضغط «سحب» للسحب بالدقة المختارة.')}}catch(e){smSt('تعذّرت المعاينة: '+e.message,1)}
+ SM.busy=0;$('smgo').disabled=$('smpv').disabled=false}
+function smBridgeFiles(){const t=$('ps1src').textContent.replace('__ORIGIN__',location.origin).replace(/^\s+/,'').replace(/\r?\n/g,'\r\n');
+ save(new Blob([t],{type:'text/plain'}),'scanner-bridge.ps1');
+ setTimeout(()=>save(new Blob(['@echo off\r\ntitle Scanner bridge\r\npowershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scanner-bridge.ps1"\r\npause\r\n'],{type:'application/octet-stream'}),'start-scanner.bat'),600)}
+$('smx').onclick=()=>{$('sm').hidden=true;smSave();renderItems();refresh()};$('smre').onclick=smCheck;$('smrf').onclick=smDevs;$('smgo').onclick=smPull;$('smpv').onclick=smPrev;$('smdl').onclick=smBridgeFiles;
+$('smfi').onclick=()=>{$('sm').hidden=true;pickScan(true)};
+$('smb').oninput=()=>$('smbv').textContent=$('smb').value;$('smc').oninput=()=>$('smcv').textContent=$('smc').value;
+
 buildPE();addItem();
 </script>
 </body>
