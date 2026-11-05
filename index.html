@@ -114,7 +114,13 @@ footer{max-width:1100px;margin:auto;padding:16px 16px 28px;text-align:center;col
 <div id="ed" hidden><div class="eh"><b id="et"></b><div><button class="sec" id="ex" type="button">إلغاء</button> <button id="ok" type="button">تم ✓</button></div></div>
 <div id="es"><canvas id="ec"></canvas><canvas id="lp" width="120" height="120"></canvas></div>
 <div class="eb" id="ef" style="justify-content:flex-start"></div>
-<div class="eb"><button class="sec" id="er" type="button">⟳ تدوير</button><button class="sec" id="ea" type="button">اقتراح تلقائي</button><button class="sec" id="e0" type="button">إعادة ضبط</button></div>
+<div class="eb"><button class="sec" id="er" type="button">⟳ تدوير</button><button class="sec" id="efh" type="button">⇋ قلب يمين/يسار</button><button class="sec" id="efv" type="button">⇅ قلب فوق/تحت</button><button class="sec" id="ea" type="button">اقتراح تلقائي</button><button class="sec" id="e0" type="button">إعادة ضبط</button></div>
+<details open id="esl" style="border:1px solid var(--bd);border-radius:8px;padding:6px 10px;background:var(--card)"><summary style="font-weight:700;cursor:pointer">تسوية وتحريك</summary>
+<label>تسوية (ميلان) <span id="ev_rot" style="color:var(--ac);font-weight:700">0</span><input type="range" data-k="rot" min="-45" max="45" step="0.5" value="0"></label>
+<label>منظور عمودي <span id="ev_pv" style="color:var(--ac);font-weight:700">0</span><input type="range" data-k="pv" min="-100" max="100" value="0"></label>
+<label>منظور أفقي <span id="ev_ph" style="color:var(--ac);font-weight:700">0</span><input type="range" data-k="ph" min="-100" max="100" value="0"></label>
+<label>تحريك يمين / يسار <span id="ev_mx" style="color:var(--ac);font-weight:700">0</span><input type="range" data-k="mx" min="-50" max="50" value="0"></label>
+<label>تحريك فوق / تحت <span id="ev_my" style="color:var(--ac);font-weight:700">0</span><input type="range" data-k="my" min="-50" max="50" value="0"></label></details>
 <p style="margin:0;font-size:13px;color:var(--mu)">حرّك النقاط ١–٤ على زوايا المستمسك (يعدّل الميلان والمنظور)، واسحب أي ضلع (النقطة البيضاء بمنتصفه أو من أي مكان عليه) لتحريك الضلع كله للداخل أو الخارج، أو اسحب داخل الإطار لتحريكه كله. المعاينة تحت هي النتيجة النهائية.</p><canvas id="ep"></canvas></div>
 <script>
 const $=id=>document.getElementById(id);let DPI=300;const mm=v=>Math.round(v*DPI/25.4);
@@ -285,7 +291,7 @@ function defQ(it,b){const r=it.w/it.h;let w=.8,h=w*b.width/(r*b.height);if(h>.8)
 function openEd(k,s){const it=items[k],b=it.imgs[s];if(!b)return;const sc=Math.min(Math.min(innerWidth-20,900)/b.width,innerHeight*.5/b.height),cw=Math.round(b.width*sc),ch=Math.round(b.height*sc),dr=devicePixelRatio||1,c=$('ec');
  c.style.width=cw+'px';c.style.height=ch+'px';c.width=cw*dr;c.height=ch*dr;const im=cv(cw*dr,ch*dr);im.getContext('2d').drawImage(b,0,0,im.width,im.height);
  E={it,s,b,im,cw,ch,dr,sc,drag:-1,f:it.filt[s]||'auto',q:it.quad[s]?it.quad[s].map(p=>[...p]):defQ(it,b)};
- $('et').textContent=DOCS[it.type][0]+' — '+(it.n==1?'الصورة':s?'الظهر':'الوجه');chips();$('ef').style.display=it.kind=='photo'?'none':'flex';$('ed').hidden=false;drawEd();prev()}
+ rebase();$('et').textContent=DOCS[it.type][0]+' — '+(it.n==1?'الصورة':s?'الظهر':'الوجه');chips();$('ef').style.display=it.kind=='photo'?'none':'flex';$('ed').hidden=false;drawEd();prev()}
 function drawEd(){const{im,q,cw,ch,dr}=E,x=$('ec').getContext('2d'),P=q.map(p=>[p[0]*cw,p[1]*ch]);x.setTransform(dr,0,0,dr,0,0);x.drawImage(im,0,0,cw,ch);
  const path=()=>{x.moveTo(...P[0]);P.slice(1).forEach(p=>x.lineTo(...p));x.closePath()};
  x.fillStyle='rgba(0,0,0,.55)';x.beginPath();x.rect(0,0,cw,ch);path();x.fill('evenodd');x.strokeStyle='#3fc796';x.lineWidth=2;x.beginPath();path();x.stroke();
@@ -306,11 +312,22 @@ ec.onpointermove=e=>{if(!E||E.drag<0)return;const p=ptr(e),c1=v=>Math.min(1,Math
   t=Math.min(hi,Math.max(lo,t));for(const k of[i,j])E.q[k]=[E.q0[k][0]+n[0]*t/E.cw,E.q0[k][1]+n[1]*t/E.ch];drawEd();loupe();prevSoon();return}
  if(E.drag<4)E.q[E.drag]=[c1(p[0]),c1(p[1])];else{const dx=p[0]-E.last[0],dy=p[1]-E.last[1];if(E.q.every(a=>a[0]+dx>=0&&a[0]+dx<=1&&a[1]+dy>=0&&a[1]+dy<=1))E.q=E.q.map(a=>[a[0]+dx,a[1]+dy]);E.last=p}
  drawEd();loupe();prevSoon()};
-ec.onpointerup=ec.onpointercancel=()=>{if(E){E.drag=-1;loupe();prev()}};
-$('er').onclick=()=>{E.q.unshift(E.q.pop());drawEd();prev()};
-$('e0').onclick=()=>{E.q=defQ(E.it,E.b);drawEd();prev()};
-$('ea').onclick=()=>{const q=autoQuad(E.b,E.it.w/E.it.h);if(!q){msg('ما قدرت أحدد الحواف، حرّك النقاط يدوياً.');return}E.q=q;drawEd();prev()};
+ec.onpointerup=ec.onpointercancel=()=>{if(E){E.drag=-1;loupe();rebase();prev()}};
+$('er').onclick=()=>{E.q.unshift(E.q.pop());rebase();drawEd();prev()};
+$('e0').onclick=()=>{E.q=defQ(E.it,E.b);rebase();drawEd();prev()};
+$('ea').onclick=()=>{const q=autoQuad(E.b,E.it.w/E.it.h);if(!q){msg('ما قدرت أحدد الحواف، حرّك النقاط يدوياً.');return}E.q=q;rebase();drawEd();prev()};
 
+function rebase(){if(!E)return;E.base=E.q.map(p=>[...p]);E.sv={rot:0,pv:0,ph:0,mx:0,my:0};document.querySelectorAll('#esl input').forEach(i=>{i.value=0;$('ev_'+i.dataset.k).textContent=0})}
+function applySl(){const{cw,ch,base,sv}=E,P=base.map(p=>[p[0]*cw,p[1]*ch]),Ln=(a,b)=>Math.hypot(P[b][0]-P[a][0],P[b][1]-P[a][1])||1,
+ l01=Ln(0,1),l03=Ln(0,3),ux=(P[1][0]-P[0][0])/l01,uy=(P[1][1]-P[0][1])/l01,vx=(P[3][0]-P[0][0])/l03,vy=(P[3][1]-P[0][1])/l03,a=sv.pv/100*.2*l01,b=sv.ph/100*.2*l03;
+ const mv=(i,dx,dy)=>{P[i][0]+=dx;P[i][1]+=dy};
+ mv(0,-ux*a,-uy*a);mv(1,ux*a,uy*a);mv(2,-ux*a,-uy*a);mv(3,ux*a,uy*a);
+ mv(0,-vx*b,-vy*b);mv(3,vx*b,vy*b);mv(1,vx*b,vy*b);mv(2,-vx*b,-vy*b);
+ const cx=P.reduce((t,p)=>t+p[0],0)/4,cy=P.reduce((t,p)=>t+p[1],0)/4,an=sv.rot*Math.PI/180,co=Math.cos(an),si=Math.sin(an),c1=v=>Math.min(1,Math.max(0,v));
+ E.q=P.map(p=>{const X=p[0]-cx,Y=p[1]-cy;return[c1((cx+X*co-Y*si+sv.mx/100*cw*.5)/cw),c1((cy+X*si+Y*co+sv.my/100*ch*.5)/ch)]})}
+$('esl').addEventListener('input',e=>{const k=e.target.dataset.k;if(!k||!E)return;E.sv[k]=+e.target.value;$('ev_'+k).textContent=e.target.value;applySl();drawEd();prevSoon()});
+$('efh').onclick=()=>{const q=E.q;E.q=[q[1],q[0],q[3],q[2]];rebase();drawEd();prev()};
+$('efv').onclick=()=>{const q=E.q;E.q=[q[3],q[2],q[1],q[0]];rebase();drawEd();prev()};
 const FL=[['orig','الأصلي'],['auto','تلقائي'],['magic','سحري ✨'],['color','ملوّن'],['gray','رمادي'],['bw','أبيض/أسود']];
 function chips(){$('ef').innerHTML=FL.map(([m,t])=>`<button type="button" class="${E.f==m?'':'sec'}" data-m="${m}">${t}</button>`).join('')}
 $('ef').onclick=e=>{const m=e.target.dataset.m;if(m&&E){E.f=m;chips();prev()}};
