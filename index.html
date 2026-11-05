@@ -57,16 +57,11 @@ button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible
 <header><h1>مرتّب المستمسكات للطباعة</h1><p>ارفع صورة الوجه والظهر، والأداة تقصّ وتعدّل الإضاءة وترتّبها على الورقة. كل شيء يتم داخل جهازك ولا يُرفع أي شيء للإنترنت.</p></header>
 <main>
 <div>
-<section><h2>١. المستمسكات على الورقة</h2>
+<section><h2>١. المستمسكات والصور على الورقة</h2>
 <div id="items"></div>
-<div class="acts"><button id="addc" type="button">📷 تصوير مستمسك</button><button id="addg" type="button" class="sec">🖼 من المعرض</button><button id="add" type="button" class="sec">+ فارغ</button></div>
+<div class="acts"><button id="addc" type="button">📷 تصوير مستمسك</button><button id="addg" type="button" class="sec">🖼 من المعرض</button><button id="add" type="button" class="sec">+ فارغ</button><button id="addp" type="button" class="sec">+ صورة شخصية</button></div>
 </section>
-<section><h2>٢. الصور الشخصية</h2>
-<label>مقاس الصور الجديدة<select id="psz"></select></label>
-<div id="photos"></div>
-<div class="acts"><button id="addpc" type="button">📷 تصوير صورة</button><button id="addpg" type="button" class="sec">🖼 إضافة صور</button></div>
-</section>
-<section><h2>٣. التحسين التلقائي (للمستمسكات)</h2>
+<section><h2>٢. التحسين التلقائي (للمستمسكات)</h2>
 <div class="ck"><input type="checkbox" id="crop"><label for="crop" style="margin:0;color:inherit">قص تلقائي للحواف (اختياري، يُهمل لو قصّيت يدوياً)</label></div>
 <div class="ck"><input type="checkbox" id="oe" checked><label for="oe" style="margin:0;color:inherit">فتح شاشة القص اليدوي بعد كل صورة</label></div>
 <div class="ck"><input type="checkbox" id="enh" checked><label for="enh" style="margin:0;color:inherit">ضبط الإضاءة والألوان تلقائياً</label></div>
@@ -74,7 +69,7 @@ button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible
 <label>السطوع<input type="range" id="br" min="-50" max="50" value="0"></label>
 <label>التباين<input type="range" id="ct" min="-50" max="50" value="0"></label>
 </section>
-<section><h2>٤. الورقة والترتيب</h2>
+<section><h2>٣. الورقة والترتيب</h2>
 <label>حجم الورقة<select id="paper"></select></label>
 <div class="r" id="pc" hidden><label>العرض ملم<input type="number" id="pw" value="210"></label><label>الارتفاع ملم<input type="number" id="ph" value="297"></label></div>
 <div class="r"><label>الاتجاه<select id="ori"><option value="p">عمودي</option><option value="l">أفقي</option></select></label>
@@ -99,31 +94,31 @@ button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible
 <div id="pe" class="md" hidden><div class="eh"><b>🎨 تحسين الألوان</b><div><button class="sec" id="pex" type="button">إلغاء</button> <button id="pea" type="button">تطبيق ✓</button></div></div><canvas id="pec"></canvas>
 <label>الإضاءة<input type="range" id="s_br" min="-50" max="50" value="0"></label><label>التباين<input type="range" id="s_ct" min="-50" max="50" value="0"></label><label>الحدة والوضوح<input type="range" id="s_sh" min="0" max="100" value="0"></label><label>تنعيم الوجه: <span id="smv">0</span> / 65<input type="range" id="s_sm" min="0" max="65" value="0"></label>
 <button class="sec" id="per" type="button">استعادة الأصل</button></div>
-<div id="pb" class="md" hidden><div class="eh"><b>🖼 لون الخلفية (ذكاء اصطناعي)</b><button id="pbx" class="sec" type="button">إغلاق</button></div><canvas id="pbc"></canvas><p id="bst" style="margin:0;color:var(--mu);font-size:13px"></p><div id="sw"></div><label>لون مخصص<input type="color" id="bcu" value="#ffffff"></label><button class="sec" id="bre" type="button">استعادة الخلفية الأصلية</button></div>
+<div id="pb" class="md" hidden><div class="eh"><b>🖼 لون الخلفية (ذكاء اصطناعي)</b><button id="pbx" class="sec" type="button">إغلاق</button></div><canvas id="pbc"></canvas><p id="bst" style="margin:0;color:var(--mu);font-size:13px"></p><label>نعومة الحافة<input type="range" id="bfe" min="0" max="4" value="1"></label><label>حافة الشخص (سالب يضيّق، موجب يوسّع)<input type="range" id="bsh" min="-3" max="3" value="0"></label>
+<div id="sw"></div><label>لون مخصص<input type="color" id="bcu" value="#ffffff"></label><button class="sec" id="bre" type="button">استعادة الخلفية الأصلية</button></div>
 <div id="ed" hidden><div class="eh"><b id="et"></b><div><button class="sec" id="ex" type="button">إلغاء</button> <button id="ok" type="button">تم ✓</button></div></div>
 <div id="es"><canvas id="ec"></canvas><canvas id="lp" width="120" height="120"></canvas></div>
 <div class="eb" id="ef" style="justify-content:flex-start"></div>
 <div class="eb"><button class="sec" id="er" type="button">⟳ تدوير</button><button class="sec" id="ea" type="button">اقتراح تلقائي</button><button class="sec" id="e0" type="button">إعادة ضبط</button></div>
-<p style="margin:0;font-size:13px;color:var(--mu)">حرّك النقاط ١–٤ على زوايا المستمسك (يعدّل الميلان والمنظور)، واسحب داخل الإطار لتحريكه كله. المعاينة تحت هي النتيجة النهائية.</p><canvas id="ep"></canvas></div>
+<p style="margin:0;font-size:13px;color:var(--mu)">حرّك النقاط ١–٤ على زوايا المستمسك (يعدّل الميلان والمنظور)، واسحب أي ضلع (النقطة البيضاء بمنتصفه أو من أي مكان عليه) لتحريك الضلع كله للداخل أو الخارج، أو اسحب داخل الإطار لتحريكه كله. المعاينة تحت هي النتيجة النهائية.</p><canvas id="ep"></canvas></div>
 <script>
 const $=id=>document.getElementById(id),DPI=300,mm=v=>Math.round(v*DPI/25.4);
-const PSZ=[['صورة جواز (3.5×4.5 سم)',35,45],['صورة معاملة عادية (3×4 سم)',30,40],['صورة وثيقة (4×6 سم)',40,60],['صورة تأييد سكن (3×4 سم)',30,40],['صورة بطاقة سكن (3×4 سم)',30,40],['صورة صغيرة (2.5×3.5 سم)',25,35],['صورة فيزا (5×5 سم)',50,50]];
-const BGC=[['#ffffff','أبيض (قياسي)'],['#d6e6f7','أزرق فاتح'],['#1f4e9c','أزرق رسمي'],['#e5e5e5','رمادي فاتح'],['#2e7d32','أخضر'],['#c62828','أحمر']];
-const DOCS={photo:['صورة شخصية',30,40,1],natl:['بطاقة وطنية',85.6,54,2],sn:['سنوية السيارة',85.6,54,2],lic:['إجازة سوق',85.6,54,2],master:['ماستر كارد',85.6,54,2],visa:['فيزا كارد',85.6,54,2],vote:['بطاقة ناخب',85.6,54,2],res:['بطاقة سكن',100,70,2],pass:['جواز سفر (صفحة)',125,88,1],ph35:['صورة جواز 3.5×4.5 سم',35,45,1],ph34:['صورة معاملة 3×4 سم',30,40,1],ph46:['صورة طالب / وزاري 4×6 سم',40,60,1],ph25:['صورة صغيرة 2.5×3.5 سم',25,35,1],a4:['صفحة كاملة A4',200,287,1],cus:['مخصص (أي مستمسك)',85.6,54,2]};
+const BGC=[['#ffffff','أبيض (إزالة الخلفية)'],['#d6e6f7','أزرق فاتح'],['#1f4e9c','أزرق رسمي'],['#e5e5e5','رمادي فاتح'],['#2e7d32','أخضر'],['#c62828','أحمر']];
+const DOCS={p_pass:['صورة جواز 35×45 ملم',35,45,1,'p'],p_txn:['صورة معاملة عادية 30×40 ملم',30,40,1,'p'],p_house:['صورة تأييد سكن 30×40 ملم',30,40,1,'p'],p_card:['صورة بطاقة سكن 30×40 ملم',30,40,1,'p'],p_doc:['صورة وثيقة 40×60 ملم',40,60,1,'p'],p_stu:['صورة طالب / وزاري 40×60 ملم',40,60,1,'p'],p_small:['صورة صغيرة 25×35 ملم',25,35,1,'p'],p_visa:['صورة فيزا 50×50 ملم',50,50,1,'p'],natl:['بطاقة وطنية',85.6,54,2],sn:['سنوية السيارة',85.6,54,2],lic:['إجازة سوق',85.6,54,2],master:['ماستر كارد',85.6,54,2],visa:['فيزا كارد',85.6,54,2],vote:['بطاقة ناخب',85.6,54,2],res:['بطاقة سكن',100,70,2],pass:['جواز سفر (صفحة)',125,88,1],ph35:['صورة جواز 3.5×4.5 سم',35,45,1],ph34:['صورة معاملة 3×4 سم',30,40,1],ph46:['صورة طالب / وزاري 4×6 سم',40,60,1],ph25:['صورة صغيرة 2.5×3.5 سم',25,35,1],a4:['صفحة كاملة A4',200,287,1],cus:['مخصص (أي مستمسك)',85.6,54,2]};
 const PAP={a4:['A4',210,297],a3:['A3',297,420],a5:['A5',148,210],a6:['A6',105,148],b5:['B5',176,250],legal:['Legal',215.9,355.6],p35:['3.5×5 إنش (ورق صور)',88.9,127],p46:['4×6 إنش = 10×15 (ورق صور)',101.6,152.4],p57:['5×7 إنش = 13×18 (ورق صور)',127,177.8],p68:['6×8 إنش = 15×20 (ورق صور)',152.4,203.2],p810:['8×10 إنش = 20×25 (ورق صور)',203.2,254],p812:['8×12 إنش = 20×30 (ورق صور)',203.2,304.8],p1114:['11×14 إنش',279.4,355.6],let:['Letter',215.9,279.4],cus:['حجم مخصص',210,297]};
 const items=[];let pages=[],tm;
 const cv=(w,h)=>{const c=document.createElement('canvas');c.width=Math.max(1,w|0);c.height=Math.max(1,h|0);return c};
 for(const k in PAP)$('paper').add(new Option(PAP[k][0],k));
 function addItem(){items.push({type:'natl',w:85.6,h:54,n:2,copies:1,imgs:[null,null],rot:[0,0],quad:[null,null],man:false,filt:['auto','auto']});renderItems();refresh()}
 function renderItems(){const IT=$('items');IT.innerHTML='';
- items.forEach((it,k)=>{if(it.kind=='photo')return;const d=document.createElement('div');d.className='item';d.dataset.k=k;
-  const opts=Object.keys(DOCS).filter(t=>t!='photo').map(t=>`<option value="${t}"${t==it.type?' selected':''}>${DOCS[t][0]}</option>`).join('');
+ items.forEach((it,k)=>{const d=document.createElement('div');d.className='item';d.dataset.k=k;if(it.kind=='photo'){d.innerHTML=photoHTML(it);IT.append(d);thumb(d,it);return}
+  const opts=typeOpts(it.type);
   let sl='';for(let s=0;s<it.n;s++){const lb=it.n==1?'الصورة':s?'الظهر':'الوجه';
    const I=it.imgs[s];sl+=`<div class="slot${I?' ok':''}"><span>${lb}${I?(it.quad[s]?' ✓✂':' ✓'):''}</span><div class="sb"><button type="button" class="sec" data-f="cam" data-s="${s}">📷</button><button type="button" class="sec" data-f="gal" data-s="${s}">🖼</button>${I?`<button type="button" class="sec" data-f="crop" data-s="${s}">✂ قص</button><button type="button" class="sec" data-f="rot" data-s="${s}">⟳</button>`:''}</div></div>`}
   d.innerHTML=`<div class="ih"><select data-f="type">${opts}</select><button type="button" class="sec" data-f="del">حذف</button></div>
 <div class="r3"><label>العرض ملم<input type="number" data-f="w" step="0.1" min="10" value="${it.w}"></label><label>الارتفاع ملم<input type="number" data-f="h" step="0.1" min="10" value="${it.h}"></label><label>النسخ<input type="number" data-f="copies" min="1" max="60" value="${it.copies}"></label></div>
 <label>الأوجه<select data-f="n"><option value="2"${it.n==2?' selected':''}>وجه وظهر</option><option value="1"${it.n==1?' selected':''}>وجه واحد</option></select></label>${sl}`;
-  IT.append(d)});renderPhotos()}
+  IT.append(d)})}
 function paperDims(){let [,w,h]=PAP[$('paper').value];if($('paper').value=='cus'){w=+$('pw').value||210;h=+$('ph').value||297}
  const o=$('ori').value;return o=='l'?[Math.max(w,h),Math.min(w,h)]:[Math.min(w,h),Math.max(w,h)]}
 function detect(c){const s=Math.min(1,300/Math.max(c.width,c.height)),w=c.width*s|0,h=c.height*s|0,t=cv(w,h),x=t.getContext('2d');
@@ -179,12 +174,12 @@ function refresh(){clearTimeout(tm);tm=setTimeout(()=>{$('pc').hidden=$('paper')
 const IT=$('items'),idx=e=>+e.target.closest('.item').dataset.k;
 IT.addEventListener('input',e=>{const f=e.target.dataset.f;if(['w','h','copies'].includes(f)){items[idx(e)][f]=+e.target.value;refresh()}});
 IT.addEventListener('change',async e=>{const f=e.target.dataset.f;if(!f)return;const it=items[idx(e)];
- if(f=='type'){it.man=true;const d=DOCS[e.target.value];Object.assign(it,{type:e.target.value,w:d[1],h:d[2],n:d[3]});renderItems();refresh()}
+ if(f=='type'){it.man=true;const d=DOCS[e.target.value];Object.assign(it,{type:e.target.value,w:d[1],h:d[2],n:d[3]});if(d[4]=='p'){it.kind='photo';it.n=1;if(!it.adj)it.adj={br:0,ct:0,sh:0,sm:0};if(!it.orig)it.orig=it.imgs[0];it.filt=['orig','orig'];if(it.copies<2)it.copies=4}else{delete it.kind;it.filt=['auto','auto']}renderItems();refresh()}
  else if(f=='n'){it.n=+e.target.value;renderItems();refresh()}
  else if(f=='file'){const fl=e.target.files[0];if(!fl)return;const s=+e.target.dataset.s;
   try{it.imgs[s]=await createImageBitmap(fl);it.rot[s]=0;renderItems();refresh()}catch(_){$('note').textContent='تعذّر فتح الصورة، جرّب صيغة JPG أو PNG.'}}});
 IT.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=idx(e),it=items[k];
- const f=b.dataset.f,s=+b.dataset.s;if(f=='del'){items.splice(k,1);renderItems();refresh()}else if(f=='rot'){if(it.quad[s])it.quad[s].unshift(it.quad[s].pop());else it.rot[s]=(it.rot[s]+90)%360;refresh()}else if(f=='cam')openCam(k,s);else if(f=='gal')pick(k,s,false);else if(f=='crop')openEd(k,s)});
+ const f=b.dataset.f,s=+b.dataset.s;if(f=='del'){items.splice(k,1);renderItems();refresh()}else if(f=='rot'){if(it.quad[s])it.quad[s].unshift(it.quad[s].pop());else it.rot[s]=(it.rot[s]+90)%360;refresh()}else if(f=='cam')openCam(k,s);else if(f=='gal')pick(k,s,false);else if(f=='crop')openEd(k,s);else if(f=='enh'){if(it.imgs[0])openPE(k)}else if(f=='bg'){if(it.imgs[0])openPB(k)}else if(f=='fill'){const G=+$('gap').value||0,M=+$('mar').value||0,[pw,ph]=paperDims();it.copies=Math.max(1,Math.floor((pw-2*M+G)/(it.w+G))*Math.floor((ph-2*M+G)/(it.h+G)));renderItems();refresh()}else if(f=='reset'){it.imgs[0]=it.orig||it.imgs[0];it.quad[0]=null;it.adj={br:0,ct:0,sh:0,sm:0};renderItems();refresh()}});
 $('add').onclick=addItem;
 ['paper','pw','ph','ori','lay','gap','mar','mk','pp','seq','crop','enh','shp','br','ct'].forEach(id=>$(id).addEventListener('input',refresh));
 function save(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),3000)}
@@ -223,7 +218,7 @@ function isMC(b){const k=Math.min(1,800/Math.max(b.width,b.height)),w=Math.round
 function setImg(it,s,b,na){if(it.kind=='photo'){it.imgs[0]=b;it.orig=b;it.quad[0]=null;it.bg=null;it.adj={br:0,ct:0,sh:0,sm:0};return}it.imgs[s]=b;it.quad[s]=null;it.rot[s]=0;
  if(!it.man&&it.type!='master'&&isMC(b)){const d=DOCS.master;Object.assign(it,{type:'master',w:d[1],h:d[2],n:d[3]});msg('تم التعرف تلقائياً: ماستر كارد ✓ (غيّر النوع من القائمة إن لزم)')}it.quad[s]=na?null:autoQuad(b,it.w/it.h);if(!na&&!it.quad[s])msg('ما كدرت أحدد الحواف تلقائياً، حرّك النقاط يدوياً أو صوّر بالإطار الموجَّه')}
 async function onFiles(e){const fs=[...e.target.files];if(!fs.length||!tg)return;if(tg.photo){try{for(const f of fs)items.push(newPhoto(await createImageBitmap(f)))}catch(_){msg('تعذّر فتح الصورة');return}tg=null;renderItems();refresh();if(fs.length==1&&$('oe').checked)openEd(items.length-1,0);return}let{k,s}=tg;const k0=k,s0=s;
- try{for(const f of fs){let it=items[k];if(s>=it.n){const t=it.man?it.type:'natl',d=DOCS[t];k++;it={type:t,w:d[1],h:d[2],n:d[3],copies:1,imgs:[null,null],rot:[0,0],quad:[null,null],man:it.man,filt:['auto','auto']};items.splice(k,0,it);s=0}
+ try{for(const f of fs){let it=items[k];if(s>=it.n){const t=it.man?it.type:'natl',d=DOCS[t];k++;it=mkItem(t);it.man=it.man;items.splice(k,0,it);s=0}
   setImg(it,s,await createImageBitmap(f));s++}}catch(_){msg('تعذّر فتح الصورة، جرّب JPG أو PNG.');return}
  renderItems();refresh();if(fs.length==1&&$('oe').checked)openEd(k0,s0)}
 $('camIn').onchange=$('galIn').onchange=onFiles;
@@ -247,7 +242,7 @@ function openEd(k,s){const it=items[k],b=it.imgs[s];if(!b)return;const sc=Math.m
 function drawEd(){const{im,q,cw,ch,dr}=E,x=$('ec').getContext('2d'),P=q.map(p=>[p[0]*cw,p[1]*ch]);x.setTransform(dr,0,0,dr,0,0);x.drawImage(im,0,0,cw,ch);
  const path=()=>{x.moveTo(...P[0]);P.slice(1).forEach(p=>x.lineTo(...p));x.closePath()};
  x.fillStyle='rgba(0,0,0,.55)';x.beginPath();x.rect(0,0,cw,ch);path();x.fill('evenodd');x.strokeStyle='#3fc796';x.lineWidth=2;x.beginPath();path();x.stroke();
- P.forEach((p,i)=>{x.fillStyle='#3fc796';x.beginPath();x.arc(p[0],p[1],12,0,7);x.fill();x.fillStyle='#06251a';x.font='bold 13px sans-serif';x.textAlign='center';x.fillText(i+1,p[0],p[1]+4.5)})}
+ P.forEach((p,i)=>{x.fillStyle='#3fc796';x.beginPath();x.arc(p[0],p[1],12,0,7);x.fill();x.fillStyle='#06251a';x.font='bold 13px sans-serif';x.textAlign='center';x.fillText(i+1,p[0],p[1]+4.5)});P.forEach((p,i)=>{const q=P[(i+1)%4],mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2;x.fillStyle='#fff';x.strokeStyle='#3fc796';x.lineWidth=3;x.beginPath();x.arc(mx,my,8,0,7);x.fill();x.stroke()})}
 function prev(){if(!E)return;const p=$('ep'),W=360,H=Math.round(W*E.it.h/E.it.w);p.width=W;p.height=H;const o=warp(E.b,E.q,W,H);if(E.it.kind=='photo')padj(o,E.it.adj);else filt(o,E.f);p.getContext('2d').drawImage(o,0,0)}
 const prevSoon=()=>{cancelAnimationFrame(pr);pr=requestAnimationFrame(prev)};
 function inPoly(q,p){let r=false;for(let i=0,j=3;i<4;j=i++)if((q[i][1]>p[1])!=(q[j][1]>p[1])&&p[0]<(q[j][0]-q[i][0])*(p[1]-q[i][1])/(q[j][1]-q[i][1])+q[i][0])r=!r;return r}
@@ -256,8 +251,12 @@ function loupe(){const l=$('lp');if(!E||E.drag<0||E.drag>3){l.style.display='non
  l.style.display='block';l.style.left=a[0]>.5?'6px':'auto';l.style.right=a[0]>.5?'auto':'6px'}
 const ec=$('ec'),ptr=e=>{const r=ec.getBoundingClientRect();return[(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height]};
 ec.onpointerdown=e=>{if(!E)return;ec.setPointerCapture(e.pointerId);const p=ptr(e);let best=-1,bd=1e9;E.q.forEach((a,i)=>{const d=Math.hypot((a[0]-p[0])*E.cw,(a[1]-p[1])*E.ch);if(d<bd){bd=d;best=i}});
- if(bd<45)E.drag=best;else if(inPoly(E.q,p)){E.drag=4;E.last=p}else E.drag=-1;loupe()};
+ if(bd<40)E.drag=best;else{let eb=-1,ed=1e9;for(let i=0;i<4;i++){const a=E.q[i],b=E.q[(i+1)%4],ax=a[0]*E.cw,ay=a[1]*E.ch,dx=b[0]*E.cw-ax,dy=b[1]*E.ch-ay,l2=dx*dx+dy*dy||1,px=p[0]*E.cw,py=p[1]*E.ch,t=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/l2)),d=Math.hypot(px-ax-dx*t,py-ay-dy*t);if(d<ed){ed=d;eb=i}}
+ if(ed<28){const a=E.q[eb],b=E.q[(eb+1)%4],dx=(b[0]-a[0])*E.cw,dy=(b[1]-a[1])*E.ch,l=Math.hypot(dx,dy)||1;E.drag=10+eb;E.st=p;E.q0=E.q.map(q=>[...q]);E.n=[dy/l,-dx/l]}else if(inPoly(E.q,p)){E.drag=4;E.last=p}else E.drag=-1}loupe()};
 ec.onpointermove=e=>{if(!E||E.drag<0)return;const p=ptr(e),c1=v=>Math.min(1,Math.max(0,v));
+ if(E.drag>=10){const i=E.drag-10,j=(i+1)%4,n=E.n;let t=(p[0]-E.st[0])*E.cw*n[0]+(p[1]-E.st[1])*E.ch*n[1],lo=-1e9,hi=1e9;
+  for(const k of[i,j])for(let a=0;a<2;a++){const sz=a?E.ch:E.cw,na=n[a];if(Math.abs(na)<1e-6)continue;const c0=E.q0[k][a]*sz,l=-c0/na,h=(sz-c0)/na;lo=Math.max(lo,Math.min(l,h));hi=Math.min(hi,Math.max(l,h))}
+  t=Math.min(hi,Math.max(lo,t));for(const k of[i,j])E.q[k]=[E.q0[k][0]+n[0]*t/E.cw,E.q0[k][1]+n[1]*t/E.ch];drawEd();loupe();prevSoon();return}
  if(E.drag<4)E.q[E.drag]=[c1(p[0]),c1(p[1])];else{const dx=p[0]-E.last[0],dy=p[1]-E.last[1];if(E.q.every(a=>a[0]+dx>=0&&a[0]+dx<=1&&a[1]+dy>=0&&a[1]+dy<=1))E.q=E.q.map(a=>[a[0]+dx,a[1]+dy]);E.last=p}
  drawEd();loupe();prevSoon()};
 ec.onpointerup=ec.onpointercancel=()=>{if(E){E.drag=-1;loupe();prev()}};
@@ -321,7 +320,7 @@ const close=()=>{E=null;$('ed').hidden=true;$('lp').style.display='none'};
 $('ex').onclick=close;$('ok').onclick=()=>{E.it.quad[E.s]=E.q;E.it.filt[E.s]=E.f;close();renderItems();refresh()};
 
 const hx=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16));
-function newPhoto(b){const g=PSZ[+$('psz').value]||PSZ[1];return{kind:'photo',type:'photo',w:g[1],h:g[2],psz:+$('psz').value,n:1,copies:4,imgs:[b||null,null],rot:[0,0],quad:[null,null],man:true,filt:['orig','orig'],orig:b||null,adj:{br:0,ct:0,sh:0,sm:0}}}
+function newPhoto(b){const it=mkItem('p_txn');if(b){it.imgs[0]=b;it.orig=b}return it}
 function fin(c,it,i){if(it.kind=='photo')padj(c,it.adj);else filt(c,it.filt[i]||'auto')}
 function bx(p,w,h,r){const o=new Uint8ClampedArray(p.length),t=new Float32Array(p.length),cl=(v,M)=>v<0?0:v>M?M:v;
  for(let y=0;y<h;y++)for(let c=0;c<3;c++){let s=0;for(let x=-r;x<=r;x++)s+=p[(y*w+cl(x,w-1))*4+c];for(let x=0;x<w;x++){t[(y*w+x)*4+c]=s/(2*r+1);s+=p[(y*w+cl(x+r+1,w-1))*4+c]-p[(y*w+cl(x-r,w-1))*4+c]}}
@@ -352,36 +351,35 @@ function localMask(c){const w=c.width,h=c.height,p=c.getContext('2d').getImageDa
  return m}
 let PE=null,PB=null;
 function drawPrev(c,it){const o=proc(PE?{...it,adj:PE.a}:it,0);c.width=o.width;c.height=o.height;c.getContext('2d').drawImage(o,0,0)}
-async function applyBg(k,col){const it=items[k],src=it.orig||it.imgs[0];if(!src)return;$('bst').textContent='جارٍ المعالجة…';await new Promise(r=>setTimeout(r,40));
- const f=Math.min(1,1600/Math.max(src.width,src.height)),w=Math.round(src.width*f),h=Math.round(src.height*f),c=cv(w,h),x=c.getContext('2d');x.drawImage(src,0,0,w,h);
- let m=null,how='ذكاء اصطناعي';try{m=await aiMask(c)}catch(_){m=null}if(!m){how='كشف محلي للخلفية الواضحة (الذكاء الاصطناعي يحتاج إنترنت)';m=localMask(c)}
- const d=x.getImageData(0,0,w,h),p=d.data,[R,G,B]=hx(col);for(let i=0,j=0;i<p.length;i+=4,j++){const a=m[j];p[i]=p[i]*a+R*(1-a);p[i+1]=p[i+1]*a+G*(1-a);p[i+2]=p[i+2]*a+B*(1-a)}
- x.putImageData(d,0,0);it.imgs[0]=await createImageBitmap(c);it.bg=col;$('bst').textContent='تم — الطريقة: '+how;drawPrev($('pbc'),it);renderPhotos();refresh()}
-function renderPhotos(){const P=$('photos');P.innerHTML='';items.forEach((it,k)=>{if(it.kind!='photo')return;const d=document.createElement('div');d.className='item';d.dataset.k=k;
- d.innerHTML=`<div class="ph"><canvas class="th"></canvas><div style="flex:1"><label>المقاس<select data-f="psz"><option value="-1">مخصص</option>${PSZ.map((p,i)=>`<option value="${i}"${it.psz==i?' selected':''}>${p[0]}</option>`).join('')}</select></label></div></div>
-<div class="r3"><label>العرض سم<input type="number" step="0.1" min="1" data-f="pw" value="${+(it.w/10).toFixed(2)}"></label><label>الارتفاع سم<input type="number" step="0.1" min="1" data-f="phh" value="${+(it.h/10).toFixed(2)}"></label><label>النسخ<input type="number" data-f="copies" min="1" max="200" value="${it.copies}"></label></div>
-<div class="sb2"><button type="button" class="sec" data-f="crop">✂ قص وميلان</button><button type="button" class="sec" data-f="enh">🎨 تحسين الألوان</button><button type="button" class="sec" data-f="bg">🖼 لون الخلفية (AI)</button><button type="button" class="sec" data-f="fill">▦ املأ الصفحة</button><button type="button" class="sec" data-f="reset">↺ استرجاع الأصل</button><button type="button" class="sec" data-f="del">🗑 حذف</button></div>`;
- P.append(d);const t=d.querySelector('.th');if(it.imgs[0]){const o=proc(it,0);t.width=60;t.height=Math.round(60*o.height/o.width);t.getContext('2d').drawImage(o,0,0,t.width,t.height)}else{t.width=60;t.height=80}})}
-$('psz').innerHTML=PSZ.map((p,i)=>`<option value="${i}">${p[0]}</option>`).join('');$('psz').value=1;
-$('addpc').onclick=()=>{items.push(newPhoto(null));renderItems();refresh();openCam(items.length-1,0)};
-$('addpg').onclick=()=>{tg={photo:true};$('galIn').value='';$('galIn').click()};
-const PH=$('photos');
-PH.addEventListener('input',e=>{const f=e.target.dataset.f,it=items[idx(e)];if(!f)return;if(f=='pw'||f=='phh'||f=='copies'){if(f=='pw')it.w=+e.target.value*10;else if(f=='phh')it.h=+e.target.value*10;else it.copies=+e.target.value;if(f!='copies'){it.psz=-1;e.target.closest('.item').querySelector('[data-f=psz]').value='-1'}refresh()}});
-PH.addEventListener('change',e=>{if(e.target.dataset.f=='psz'){const it=items[idx(e)],i=+e.target.value;it.psz=i;if(i>=0){it.w=PSZ[i][1];it.h=PSZ[i][2]}renderPhotos();refresh()}});
-PH.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=idx(e),it=items[k],f=b.dataset.f;
- if(f=='crop'){if(it.imgs[0])openEd(k,0)}else if(f=='enh'){if(it.imgs[0])openPE(k)}else if(f=='bg'){if(it.imgs[0])openPB(k)}
- else if(f=='fill'){const G=+$('gap').value||0,M=+$('mar').value||0,[pw,ph]=paperDims(),n=Math.floor((pw-2*M+G)/(it.w+G))*Math.floor((ph-2*M+G)/(it.h+G));it.copies=Math.max(1,n);renderPhotos();refresh()}
- else if(f=='reset'){it.imgs[0]=it.orig||it.imgs[0];it.quad[0]=null;it.adj={br:0,ct:0,sh:0,sm:0};it.bg=null;renderPhotos();refresh()}
- else if(f=='del'){items.splice(k,1);renderItems();refresh()}});
+function typeOpts(sel){const o=g=>Object.keys(DOCS).filter(t=>(DOCS[t][4]=='p')==g).map(t=>`<option value="${t}"${t==sel?' selected':''}>${DOCS[t][0]}</option>`).join('');return`<optgroup label="المستمسكات">${o(false)}</optgroup><optgroup label="الصور الشخصية">${o(true)}</optgroup>`}
+function mkItem(t){const d=DOCS[t],p=d[4]=='p',it={type:t,w:d[1],h:d[2],n:d[3],copies:p?4:1,imgs:[null,null],rot:[0,0],quad:[null,null],man:p,filt:p?['orig','orig']:['auto','auto'],orig:null,adj:{br:0,ct:0,sh:0,sm:0}};if(p)it.kind='photo';return it}
+function photoHTML(it){return`<div class="ih"><select data-f="type">${typeOpts(it.type)}</select><button type="button" class="sec" data-f="del">حذف</button></div>
+<div class="ph"><canvas class="th"></canvas><div class="sb"><button type="button" class="sec" data-f="cam" data-s="0">📷 تصوير</button><button type="button" class="sec" data-f="gal" data-s="0">🖼 معرض</button></div></div>
+<div class="r3"><label>العرض ملم<input type="number" data-f="w" step="0.5" min="5" value="${it.w}"></label><label>الارتفاع ملم<input type="number" data-f="h" step="0.5" min="5" value="${it.h}"></label><label>النسخ<input type="number" data-f="copies" min="1" max="200" value="${it.copies}"></label></div>
+<div class="sb2"><button type="button" class="sec" data-f="crop" data-s="0">✂ قص وميلان</button><button type="button" class="sec" data-f="enh">🎨 ألوان وسطوع وتباين</button><button type="button" class="sec" data-f="bg">🖼 الخلفية (AI)</button><button type="button" class="sec" data-f="fill">▦ املأ الصفحة</button><button type="button" class="sec" data-f="reset">↺ استرجاع الأصل</button></div>`}
+function thumb(d,it){const t=d.querySelector('.th');if(it.imgs[0]){const o=proc(it,0);t.width=60;t.height=Math.round(60*o.height/o.width);t.getContext('2d').drawImage(o,0,0,t.width,t.height)}else{t.width=60;t.height=80}}
+$('addp').onclick=()=>{items.push(mkItem('p_txn'));renderItems();refresh()};
+function fmask(m,w,h,n){for(let i=0;i<n;i++){const t=new Float32Array(m.length);for(let y=0;y<h;y++)for(let x=0;x<w;x++){let s=0,c=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const X=x+dx,Y=y+dy;if(X>=0&&Y>=0&&X<w&&Y<h){s+=m[Y*w+X];c++}}t[y*w+x]=s/c}m=t}return m}
+async function compose(k,col){const it=items[k],{width:w,height:h,data:P}=PB.d,N=w*h,fe=+$('bfe').value,sh=+$('bsh').value,t=.5-sh*.12;let m=new Float32Array(N);for(let j=0;j<N;j++)m[j]=Math.min(1,Math.max(0,(PB.m[j]-t)*2+.5));m=fmask(m,w,h,fe);
+ let r0=0,g0=0,b0=0,n0=0;for(let j=0;j<N;j++)if(PB.m[j]<.05){r0+=P[j*4];g0+=P[j*4+1];b0+=P[j*4+2];n0++}if(n0<50){r0=g0=b0=255;n0=1}r0/=n0;g0/=n0;b0/=n0;
+ const o=new Uint8ClampedArray(P.length),[R,G,B]=hx(col),cl=v=>v<0?0:v>255?255:v;
+ for(let j=0,i=0;j<N;j++,i+=4){const a=m[j];let r=P[i],g=P[i+1],b=P[i+2];if(a>.02&&a<.98){r=cl((r-(1-a)*r0)/a);g=cl((g-(1-a)*g0)/a);b=cl((b-(1-a)*b0)/a)}o[i]=r*a+R*(1-a);o[i+1]=g*a+G*(1-a);o[i+2]=b*a+B*(1-a);o[i+3]=255}
+ const c=cv(w,h);c.getContext('2d').putImageData(new ImageData(o,w,h),0,0);it.imgs[0]=await createImageBitmap(c);it.bg=col;drawPrev($('pbc'),it);refresh()}
+async function applyBg(k,col){const it=items[k],src=it.orig||it.imgs[0];if(!src)return;PB.col=col;
+ if(!PB.m||PB.src!==src){$('bst').textContent='جارٍ تحليل الصورة…';await new Promise(r=>setTimeout(r,40));const f=Math.min(1,1600/Math.max(src.width,src.height)),w=Math.round(src.width*f),h=Math.round(src.height*f),c=cv(w,h),x=c.getContext('2d');x.drawImage(src,0,0,w,h);
+  let m=null,how='ذكاء اصطناعي';try{m=await aiMask(c)}catch(_){m=null}if(!m){how='كشف محلي للخلفية الواضحة (الذكاء الاصطناعي يحتاج إنترنت)';m=localMask(c)}
+  PB.m=m;PB.src=src;PB.d=x.getImageData(0,0,w,h);PB.how=how}
+ await compose(k,col);$('bst').textContent='تم — الطريقة: '+PB.how}
+$('bfe').oninput=$('bsh').oninput=()=>{if(PB&&PB.m&&PB.col)compose(PB.k,PB.col)};
 function openPE(k){const it=items[k];PE={k,a:{...it.adj}};['br','ct','sh','sm'].forEach(n=>$('s_'+n).value=PE.a[n]);$('smv').textContent=PE.a.sm;$('pe').hidden=false;drawPrev($('pec'),it)}
 ['br','ct','sh','sm'].forEach(n=>$('s_'+n).oninput=e=>{PE.a[n]=+e.target.value;$('smv').textContent=PE.a.sm;drawPrev($('pec'),items[PE.k])});
 $('per').onclick=()=>{PE.a={br:0,ct:0,sh:0,sm:0};['br','ct','sh','sm'].forEach(n=>$('s_'+n).value=0);$('smv').textContent=0;drawPrev($('pec'),items[PE.k])};
-$('pex').onclick=()=>{$('pe').hidden=true;PE=null};$('pea').onclick=()=>{items[PE.k].adj=PE.a;$('pe').hidden=true;PE=null;renderPhotos();refresh()};
-function openPB(k){PB={k};$('bst').textContent='اختر لون الخلفية. تتغير الخلفية بالذكاء الاصطناعي عند توفر الإنترنت، وإلا يُستخدم كشف محلي للخلفية الواضحة.';$('pb').hidden=false;drawPrev($('pbc'),items[k])}
+$('pex').onclick=()=>{$('pe').hidden=true;PE=null};$('pea').onclick=()=>{items[PE.k].adj=PE.a;$('pe').hidden=true;PE=null;renderItems();refresh()};
+function openPB(k){PB={k,m:null};$('bst').textContent='اختر لون الخلفية. تتغير الخلفية بالذكاء الاصطناعي عند توفر الإنترنت، وإلا يُستخدم كشف محلي للخلفية الواضحة.';$('pb').hidden=false;drawPrev($('pbc'),items[k])}
 $('sw').innerHTML=BGC.map(([c,t])=>`<button type="button" data-c="${c}" style="background:${c};color:${hx(c).reduce((a,v,i)=>a+v*[.3,.59,.11][i],0)>150?'#000':'#fff'}">${t}</button>`).join('');
 $('sw').onclick=e=>{const c=e.target.dataset.c;if(c)applyBg(PB.k,c)};$('bcu').onchange=e=>applyBg(PB.k,e.target.value);
-$('bre').onclick=()=>{const it=items[PB.k];it.imgs[0]=it.orig||it.imgs[0];it.bg=null;drawPrev($('pbc'),it);renderPhotos();refresh()};
-$('pbx').onclick=()=>{$('pb').hidden=true;PB=null};
+$('bre').onclick=()=>{const it=items[PB.k];it.imgs[0]=it.orig||it.imgs[0];it.bg=null;drawPrev($('pbc'),it);renderItems();refresh()};
+$('pbx').onclick=()=>{$('pb').hidden=true;PB=null;renderItems()};
 addItem();
 </script>
 </body>
